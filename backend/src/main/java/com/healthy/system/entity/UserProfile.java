@@ -16,6 +16,8 @@ public class UserProfile {
 
     private String username;
 
+    private String avatarUrl;
+
     private Integer gender;
 
     private Integer age;

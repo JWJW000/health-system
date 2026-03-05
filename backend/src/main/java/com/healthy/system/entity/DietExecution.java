@@ -5,23 +5,20 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
-@TableName("check_in")
-public class CheckIn {
+@TableName("diet_execution")
+public class DietExecution {
 
     @TableId(type = IdType.AUTO)
     private Long id;
 
     private Long userId;
 
-    private LocalDate checkDate;
+    private java.time.LocalDate execDate;
 
-    private Double weightKg;
-
-    private String imageUrl;
+    private Integer followed;
 
     private LocalDateTime createdTime;
 }

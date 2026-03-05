@@ -12,6 +12,9 @@ interface DietTemplate {
   fatGrams: number
   mealPlan: string
   cookingTips?: string
+  tags?: string
+  suitableLevel?: string
+  estimatedCostLevel?: string
 }
 
 const loading = ref(false)
@@ -27,6 +30,9 @@ const form = reactive<DietTemplate>({
   fatGrams: 0,
   mealPlan: '',
   cookingTips: '',
+  tags: '',
+  suitableLevel: 'NEWBIE',
+  estimatedCostLevel: 'MEDIUM',
 })
 
 const resetForm = () => {
@@ -39,6 +45,9 @@ const resetForm = () => {
   form.fatGrams = 0
   form.mealPlan = ''
   form.cookingTips = ''
+  form.tags = ''
+  form.suitableLevel = 'NEWBIE'
+  form.estimatedCostLevel = 'MEDIUM'
 }
 
 const load = async () => {
@@ -120,6 +129,9 @@ onMounted(load)
               <div class="meta">
                 {{ item.totalCalorie }} kcal · 碳水 {{ item.carbGrams }}g · 蛋白 {{ item.proteinGrams }}g · 脂肪
                 {{ item.fatGrams }}g
+                <span v-if="item.suitableLevel" class="pill">
+                  {{ item.suitableLevel === 'NEWBIE' ? '新手' : item.suitableLevel === 'INTERMEDIATE' ? '进阶' : '高级' }}
+                </span>
               </div>
             </div>
             <div class="item-actions">
@@ -177,6 +189,28 @@ onMounted(load)
           <div class="field">
             <label>烹饪建议（可选）</label>
             <textarea v-model="form.cookingTips" rows="3" placeholder="如：少油少盐、优先蒸煮炖等" />
+          </div>
+          <div class="field">
+            <label>标签（逗号分隔，如：上班族,低预算,中餐）</label>
+            <input v-model="form.tags" placeholder="上班族,低预算,中餐" />
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>适合水平</label>
+              <select v-model="form.suitableLevel">
+                <option value="NEWBIE">新手</option>
+                <option value="INTERMEDIATE">进阶</option>
+                <option value="ADVANCED">高级</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>预算档位</label>
+              <select v-model="form.estimatedCostLevel">
+                <option value="LOW">低</option>
+                <option value="MEDIUM">中</option>
+                <option value="HIGH">高</option>
+              </select>
+            </div>
           </div>
           <div class="actions">
             <button type="submit" class="primary">
@@ -364,6 +398,39 @@ button {
 @media (max-width: 960px) {
   .grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .header .primary {
+    align-self: stretch;
+    text-align: center;
+  }
+  .item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .item-actions {
+    flex-direction: row;
+    align-self: stretch;
+    justify-content: flex-end;
+  }
+  .field-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .actions .primary,
+  .actions .ghost {
+    width: 100%;
+    text-align: center;
   }
 }
 </style>

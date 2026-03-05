@@ -3,8 +3,10 @@ package com.healthy.system.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.healthy.system.entity.CheckIn;
+import com.healthy.system.entity.UserWeightLog;
 import com.healthy.system.mapper.CheckInMapper;
 import com.healthy.system.service.CheckInService;
+import com.healthy.system.service.UserWeightLogService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -16,8 +18,14 @@ import java.util.stream.Collectors;
 @Service
 public class CheckInServiceImpl extends ServiceImpl<CheckInMapper, CheckIn> implements CheckInService {
 
+    private final UserWeightLogService userWeightLogService;
+
+    public CheckInServiceImpl(UserWeightLogService userWeightLogService) {
+        this.userWeightLogService = userWeightLogService;
+    }
+
     @Override
-    public boolean checkInToday(Long userId, LocalDate today) {
+    public boolean checkInToday(Long userId, LocalDate today, Double weightKg, String imageUrl) {
         LambdaQueryWrapper<CheckIn> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(CheckIn::getUserId, userId)
                 .eq(CheckIn::getCheckDate, today);
@@ -28,7 +36,20 @@ public class CheckInServiceImpl extends ServiceImpl<CheckInMapper, CheckIn> impl
         CheckIn record = new CheckIn();
         record.setUserId(userId);
         record.setCheckDate(today);
+        record.setWeightKg(weightKg);
+        record.setImageUrl(imageUrl);
         this.save(record);
+
+        if (weightKg != null) {
+            UserWeightLog log = new UserWeightLog();
+            log.setUserId(userId);
+            log.setLogDate(today);
+            log.setWeightKg(weightKg);
+            userWeightLogService.saveOrUpdate(log,
+                    new LambdaQueryWrapper<UserWeightLog>()
+                            .eq(UserWeightLog::getUserId, userId)
+                            .eq(UserWeightLog::getLogDate, today));
+        }
         return true;
     }
 
@@ -66,6 +87,23 @@ public class CheckInServiceImpl extends ServiceImpl<CheckInMapper, CheckIn> impl
         List<CheckIn> history = history(userId);
         map.put("total", total);
         map.put("recent", history.stream().limit(5).collect(Collectors.toList()));
+        return map;
+    }
+
+    @Override
+    public Map<String, Object> weekOverview(Long userId) {
+        Map<String, Object> map = new HashMap<>();
+        LocalDate today = LocalDate.now();
+        LocalDate sevenDaysAgo = today.minusDays(6);
+
+        LambdaQueryWrapper<CheckIn> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(CheckIn::getUserId, userId)
+                .between(CheckIn::getCheckDate, sevenDaysAgo, today)
+                .orderByDesc(CheckIn::getCheckDate);
+        List<CheckIn> list = this.list(wrapper);
+
+        map.put("recent7Count", list.size());
+        map.put("recent7", list);
         return map;
     }
 }

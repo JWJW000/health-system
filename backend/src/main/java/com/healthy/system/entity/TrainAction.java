@@ -30,6 +30,12 @@ public class TrainAction {
 
     private String videoUrl;
 
+    private Integer difficulty;
+
+    private String equipment;
+
+    private Integer durationMinutes;
+
     private LocalDateTime createdTime;
 }
 

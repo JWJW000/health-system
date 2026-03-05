@@ -32,6 +32,12 @@ public class DietTemplate {
 
     private String imageUrl;
 
+    private String tags;
+
+    private String suitableLevel;
+
+    private String estimatedCostLevel;
+
     private LocalDateTime createdTime;
 }
 

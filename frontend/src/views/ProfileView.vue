@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import http from '../api/http'
 import * as echarts from 'echarts'
+
+const router = useRouter()
 
 const form = reactive({
   id: undefined as number | undefined,
@@ -23,6 +26,9 @@ const weightForm = reactive({
 
 const saving = ref(false)
 const weightSaving = ref(false)
+const isNewProfile = ref(false)
+const wasNewProfile = ref(false)
+const step = ref(1)
 
 const loadProfile = async () => {
   try {
@@ -30,9 +36,19 @@ const loadProfile = async () => {
     if (profile) {
       Object.assign(form, profile)
       weightForm.weightKg = profile.weightKg
+      isNewProfile.value = false
+      wasNewProfile.value = false
+    } else {
+      // 首次使用，引导模式
+      isNewProfile.value = true
+      wasNewProfile.value = true
+      step.value = 1
     }
   } catch (e) {
     // ignore when no profile
+    isNewProfile.value = true
+    wasNewProfile.value = true
+    step.value = 1
   }
 }
 
@@ -44,6 +60,12 @@ const saveProfile = async () => {
       id: form.id,
     })
     await loadProfile()
+    if (wasNewProfile.value) {
+      // 首次建档完成后，进入首页「今日概览」
+      isNewProfile.value = false
+      wasNewProfile.value = false
+      router.push('/')
+    }
   } finally {
     saving.value = false
   }
@@ -130,60 +152,94 @@ onMounted(async () => {
 <template>
   <div class="layout">
     <div class="card">
-      <div class="card-title">基础信息</div>
+      <div class="card-title">
+        基础信息
+        <span v-if="isNewProfile" class="tag">首次使用向导 · 第 {{ step }} 步 / 2</span>
+      </div>
       <form class="form" @submit.prevent="saveProfile">
-        <div class="field">
-          <label>昵称</label>
-          <input v-model="form.username" placeholder="可选填写" />
-        </div>
-        <div class="field">
-          <label>性别</label>
-          <select v-model="form.gender">
-            <option :value="1">男</option>
-            <option :value="2">女</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>年龄</label>
-          <input v-model.number="form.age" type="number" min="10" max="100" />
-        </div>
-        <div class="field">
-          <label>身高 (cm)</label>
-          <input v-model.number="form.heightCm" type="number" min="100" max="250" />
-        </div>
-        <div class="field">
-          <label>当前体重 (kg)</label>
-          <input v-model.number="form.weightKg" type="number" min="30" max="300" />
-        </div>
-        <div class="field">
-          <label>体脂率 (%)</label>
-          <input v-model.number="form.bodyFatPct" type="number" min="3" max="60" />
-        </div>
-        <div class="field">
-          <label>健身目标</label>
-          <select v-model="form.fitnessGoal">
-            <option :value="1">增肌</option>
-            <option :value="2">减脂</option>
-            <option :value="3">塑形</option>
-            <option :value="4">功能性训练</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>健身年限</label>
-          <input v-model.number="form.experienceYears" type="number" min="0" max="50" />
-        </div>
-        <div class="field">
-          <label>训练场景</label>
-          <input v-model="form.trainingScene" placeholder="如：健身房 / 家用器械" />
-        </div>
-        <div class="field">
-          <label>过敏食材</label>
-          <input v-model="form.allergyFoods" placeholder="如：花生、海鲜等" />
-        </div>
+        <!-- 第一步：必须的信息 -->
+        <template v-if="!isNewProfile || step === 1">
+          <div class="field">
+            <label>性别</label>
+            <select v-model="form.gender">
+              <option :value="1">男</option>
+              <option :value="2">女</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>年龄</label>
+            <input v-model.number="form.age" type="number" min="10" max="100" />
+          </div>
+          <div class="field">
+            <label>身高 (cm)</label>
+            <input v-model.number="form.heightCm" type="number" min="100" max="250" />
+          </div>
+          <div class="field">
+            <label>当前体重 (kg)</label>
+            <input v-model.number="form.weightKg" type="number" min="30" max="300" />
+          </div>
+          <div class="field">
+            <label>健身目标</label>
+            <select v-model="form.fitnessGoal">
+              <option :value="1">增肌</option>
+              <option :value="2">减脂</option>
+              <option :value="3">塑形</option>
+              <option :value="4">功能性训练</option>
+            </select>
+          </div>
+        </template>
+
+        <!-- 第二步：可选的详细信息 -->
+        <template v-if="!isNewProfile || step === 2">
+          <div class="field">
+            <label>昵称（可选）</label>
+            <input v-model="form.username" placeholder="可选填写" />
+          </div>
+          <div class="field">
+            <label>体脂率 (%)（可选）</label>
+            <input v-model.number="form.bodyFatPct" type="number" min="3" max="60" />
+          </div>
+          <div class="field">
+            <label>健身年限（年，可选）</label>
+            <input v-model.number="form.experienceYears" type="number" min="0" max="50" />
+          </div>
+          <div class="field">
+            <label>训练场景（可选）</label>
+            <input v-model="form.trainingScene" placeholder="如：健身房 / 家用器械" />
+          </div>
+          <div class="field">
+            <label>过敏食材（可选）</label>
+            <input v-model="form.allergyFoods" placeholder="如：花生、海鲜等" />
+          </div>
+        </template>
+
         <div class="actions">
-          <button type="submit" :disabled="saving">
-            {{ saving ? '保存中...' : '保存信息' }}
-          </button>
+          <template v-if="isNewProfile">
+            <button
+              v-if="step === 1"
+              type="button"
+              :disabled="saving"
+              @click="step = 2"
+            >
+              下一步：补充详细信息
+            </button>
+            <button
+              v-if="step === 2"
+              type="button"
+              :disabled="saving"
+              @click="step = 1"
+            >
+              上一步
+            </button>
+            <button type="submit" :disabled="saving">
+              {{ saving ? '保存中...' : '完成并进入今日概览' }}
+            </button>
+          </template>
+          <template v-else>
+            <button type="submit" :disabled="saving">
+              {{ saving ? '保存中...' : '保存信息' }}
+            </button>
+          </template>
         </div>
       </form>
     </div>
@@ -287,6 +343,20 @@ button {
   }
   .form {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .card {
+    padding: 14px 14px;
+  }
+  .inline-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .inline-form button {
+    width: 100%;
+    text-align: center;
   }
 }
 </style>

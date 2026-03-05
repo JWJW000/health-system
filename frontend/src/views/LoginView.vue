@@ -187,6 +187,16 @@ input:focus {
   cursor: pointer;
 }
 
+.link-btn {
+  margin-top: 6px;
+  border: none;
+  background: transparent;
+  color: #60a5fa;
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
 @media (max-width: 600px) {
   .login-shell {
     padding: 0 16px;

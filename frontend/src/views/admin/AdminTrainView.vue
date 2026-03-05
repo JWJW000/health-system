@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
+import { ElMessage } from 'element-plus'
 import http from '../../api/http'
 
 interface TrainAction {
@@ -10,11 +11,21 @@ interface TrainAction {
   setsSuggest?: number
   repsSuggest?: number
   weightSuggest?: string
+  imageUrl?: string
+  videoUrl?: string
+  difficulty?: number
+  equipment?: string
+  durationMinutes?: number
 }
 
 const loading = ref(false)
 const list = ref<TrainAction[]>([])
 const editing = ref<TrainAction | null>(null)
+
+const imageUploading = ref(false)
+const videoUploading = ref(false)
+const imageInput = ref<HTMLInputElement | null>(null)
+const videoInput = ref<HTMLInputElement | null>(null)
 
 const form = reactive<TrainAction>({
   muscleGroup: 'chest',
@@ -23,6 +34,11 @@ const form = reactive<TrainAction>({
   setsSuggest: undefined,
   repsSuggest: undefined,
   weightSuggest: '',
+  imageUrl: '',
+  videoUrl: '',
+  difficulty: 1,
+  equipment: 'BODYWEIGHT',
+  durationMinutes: undefined,
 })
 
 const resetForm = () => {
@@ -33,6 +49,11 @@ const resetForm = () => {
   form.setsSuggest = undefined
   form.repsSuggest = undefined
   form.weightSuggest = ''
+  form.imageUrl = ''
+  form.videoUrl = ''
+  form.difficulty = 1
+  form.equipment = 'BODYWEIGHT'
+  form.durationMinutes = undefined
 }
 
 const load = async () => {
@@ -51,6 +72,56 @@ const edit = (item?: TrainAction) => {
   } else {
     editing.value = null
     resetForm()
+  }
+}
+
+const triggerImageUpload = () => {
+  imageInput.value?.click()
+}
+
+const triggerVideoUpload = () => {
+  videoInput.value?.click()
+}
+
+const onImageFileChange = async (e: Event) => {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = ''
+  if (!file) return
+  imageUploading.value = true
+  try {
+    const formData = new FormData()
+    formData.append('file', file)
+    const url = await http.post<string>('/api/upload/train/image', formData)
+    if (url) {
+      form.imageUrl = url
+      ElMessage.success('动作图片上传成功')
+    }
+  } catch (err: any) {
+    ElMessage.error(err?.message || '图片上传失败')
+  } finally {
+    imageUploading.value = false
+  }
+}
+
+const onVideoFileChange = async (e: Event) => {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = ''
+  if (!file) return
+  videoUploading.value = true
+  try {
+    const formData = new FormData()
+    formData.append('file', file)
+    const url = await http.post<string>('/api/upload/train/video', formData)
+    if (url) {
+      form.videoUrl = url
+      ElMessage.success('动作视频上传成功')
+    }
+  } catch (err: any) {
+    ElMessage.error(err?.message || '视频上传失败')
+  } finally {
+    videoUploading.value = false
   }
 }
 
@@ -149,6 +220,71 @@ onMounted(load)
           <div class="field">
             <label>重量建议（可选）</label>
             <input v-model="form.weightSuggest" placeholder="例如：自选中等重量 / 1RM 的 60% 等" />
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>难度等级</label>
+              <select v-model.number="form.difficulty">
+                <option :value="1">入门</option>
+                <option :value="2">中级</option>
+                <option :value="3">高级</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>器械要求</label>
+              <select v-model="form.equipment">
+                <option value="BODYWEIGHT">徒手</option>
+                <option value="DUMBBELL">哑铃</option>
+                <option value="BARBELL">杠铃</option>
+                <option value="MACHINE">器械</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label>建议动作时长（分钟，可选）</label>
+            <input v-model.number="form.durationMinutes" type="number" min="1" />
+          </div>
+          <div class="field">
+            <label>动作图片（可选）</label>
+            <div class="upload-row">
+              <input v-model="form.imageUrl" placeholder="MinIO 或图床链接" />
+              <button
+                type="button"
+                class="ghost small"
+                :disabled="imageUploading"
+                @click="triggerImageUpload"
+              >
+                {{ imageUploading ? '上传中...' : '上传图片' }}
+              </button>
+              <input
+                ref="imageInput"
+                type="file"
+                accept="image/*"
+                class="hidden-input"
+                @change="onImageFileChange"
+              />
+            </div>
+          </div>
+          <div class="field">
+            <label>动作视频（可选）</label>
+            <div class="upload-row">
+              <input v-model="form.videoUrl" placeholder="视频链接，用户可点击观看" />
+              <button
+                type="button"
+                class="ghost small"
+                :disabled="videoUploading"
+                @click="triggerVideoUpload"
+              >
+                {{ videoUploading ? '上传中...' : '上传视频' }}
+              </button>
+              <input
+                ref="videoInput"
+                type="file"
+                accept="video/*"
+                class="hidden-input"
+                @change="onVideoFileChange"
+              />
+            </div>
           </div>
           <div class="field">
             <label>动作说明与注意事项</label>
@@ -284,6 +420,20 @@ onMounted(load)
   gap: 4px;
 }
 
+.upload-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.hidden-input {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .field-row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -333,6 +483,11 @@ button {
   color: #e5e7eb;
 }
 
+.small {
+  padding: 4px 10px;
+  font-size: 11px;
+}
+
 .danger {
   background: rgba(248, 113, 113, 0.12);
   border: 1px solid rgba(248, 113, 113, 0.9);
@@ -349,6 +504,39 @@ button {
 @media (max-width: 960px) {
   .grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .header .primary {
+    align-self: stretch;
+    text-align: center;
+  }
+  .item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .item-actions {
+    flex-direction: row;
+    align-self: stretch;
+    justify-content: flex-end;
+  }
+  .field-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .actions .primary,
+  .actions .ghost {
+    width: 100%;
+    text-align: center;
   }
 }
 </style>

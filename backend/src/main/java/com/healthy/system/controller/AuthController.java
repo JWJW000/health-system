@@ -1,5 +1,6 @@
 package com.healthy.system.controller;
 
+import com.healthy.system.auth.UserContext;
 import com.healthy.system.common.ApiResponse;
 import com.healthy.system.dto.LoginRequest;
 import com.healthy.system.dto.LoginResponse;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -45,6 +47,18 @@ public class AuthController {
         resp.setUsername(request.getUsername());
         resp.setRole(user != null ? user.getRole() : "USER");
         return ApiResponse.success(resp);
+    }
+
+    @PostMapping("/change-password")
+    public ApiResponse<Void> changePassword(@RequestBody Map<String, String> body) {
+        Long userId = UserContext.getUserId();
+        if (userId == null) {
+            return ApiResponse.error(401, "未登录");
+        }
+        String oldPassword = body.get("oldPassword");
+        String newPassword = body.get("newPassword");
+        authService.changePassword(userId, oldPassword, newPassword);
+        return ApiResponse.success();
     }
 }
 

@@ -32,7 +32,7 @@ const handleSubmit = async () => {
     }
     setToken(resp.token)
     setUser({ username: resp.username || form.username, role: resp.role })
-    router.push('/admin/diets')
+    router.push('/admin/dashboard')
   } catch (e: any) {
     errorMsg.value = e?.message || '请求失败'
   } finally {
@@ -45,7 +45,6 @@ const handleSubmit = async () => {
   <div class="login-shell">
     <div class="panel">
       <h1 class="title">管理员登录</h1>
-      <p class="subtitle">仅限运营、教练与系统管理员使用</p>
 
       <form class="form" @submit.prevent="handleSubmit">
         <div class="field">

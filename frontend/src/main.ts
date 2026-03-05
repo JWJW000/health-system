@@ -4,6 +4,9 @@ import App from './App.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import { routes } from './router'
 import { getToken, getUser } from './utils/auth'
+import ElementPlus from 'element-plus'
+import 'element-plus/dist/index.css'
+import 'element-plus/theme-chalk/dark/css-vars.css'
 
 const app = createApp(App)
 
@@ -34,7 +37,7 @@ router.beforeEach((to, from, next) => {
 
   // 已登录管理员访问 /admin 时，直接进后台首页
   if (to.path === '/admin' && token && user?.role === 'ADMIN') {
-    return next({ path: '/admin/diets' })
+    return next({ path: '/admin/dashboard' })
   }
 
   // 已登录用户访问普通登录页时，重定向到首页
@@ -46,4 +49,5 @@ router.beforeEach((to, from, next) => {
 })
 
 app.use(router)
+app.use(ElementPlus)
 app.mount('#app')

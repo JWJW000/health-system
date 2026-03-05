@@ -1,6 +1,7 @@
 export interface AuthUser {
   username: string
   role?: string
+  avatarUrl?: string
 }
 
 const TOKEN_KEY = 'healthy_token'
@@ -34,5 +35,11 @@ export function setUser(user: AuthUser) {
 
 export function clearUser() {
   localStorage.removeItem(USER_KEY)
+}
+
+export function logout(router: { push: (path: string) => void }, redirectPath: string = '/login') {
+  clearToken()
+  clearUser()
+  router.push(redirectPath)
 }
 

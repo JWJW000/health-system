@@ -12,6 +12,7 @@ interface SysUser {
 const loading = ref(false)
 const list = ref<SysUser[]>([])
 const keyword = ref('')
+const savingId = ref<number | null>(null)
 
 const load = async () => {
   loading.value = true
@@ -26,6 +27,21 @@ const load = async () => {
   }
 }
 
+const updateRole = async (user: SysUser) => {
+  savingId.value = user.id
+  try {
+    await http.post('/api/admin/user/role', {
+      userId: user.id,
+      role: user.role,
+    })
+  } catch (e) {
+    // 失败时重新刷新列表以回滚本地修改
+    await load()
+  } finally {
+    savingId.value = null
+  }
+}
+
 onMounted(load)
 </script>
 
@@ -34,7 +50,6 @@ onMounted(load)
     <div class="header">
       <div>
         <h2 class="title">用户管理</h2>
-        <p class="subtitle">查看系统账号与角色，为线下运维和客服提供支持</p>
       </div>
     </div>
 
@@ -64,7 +79,17 @@ onMounted(load)
         <div v-else v-for="u in list" :key="u.id" class="row">
           <span class="col-id">#{{ u.id }}</span>
           <span class="col-name">{{ u.username }}</span>
-          <span class="col-role">{{ u.role }}</span>
+          <span class="col-role">
+            <select
+              v-model="u.role"
+              class="role-select"
+              :disabled="savingId === u.id"
+              @change="updateRole(u)"
+            >
+              <option value="USER">USER</option>
+              <option value="ADMIN">ADMIN</option>
+            </select>
+          </span>
           <span class="col-time">{{ u.createdTime || '-' }}</span>
         </div>
       </div>
@@ -167,9 +192,46 @@ button {
   border-bottom: none;
 }
 
+.role-select {
+  border-radius: 999px;
+  border: 1px solid rgba(55, 65, 81, 0.9);
+  background: rgba(15, 23, 42, 0.9);
+  color: #e5e7eb;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.role-select:disabled {
+  opacity: 0.6;
+}
+
 @media (max-width: 768px) {
   .row {
     grid-template-columns: 0.7fr 1.6fr 1fr 1.7fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .primary {
+    width: 100%;
+    text-align: center;
+  }
+  .row.head {
+    display: none;
+  }
+  .row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+  .col-id,
+  .col-name,
+  .col-role,
+  .col-time {
+    display: block;
   }
 }
 </style>

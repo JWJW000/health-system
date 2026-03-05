@@ -9,7 +9,10 @@ import java.util.Map;
 
 public interface CheckInService extends IService<CheckIn> {
 
-    boolean checkInToday(Long userId, LocalDate today);
+    /**
+     * 当日打卡，可选填写体重与健身图 URL。
+     */
+    boolean checkInToday(Long userId, LocalDate today, Double weightKg, String imageUrl);
 
     long countByUser(Long userId);
 
@@ -24,5 +27,10 @@ public interface CheckInService extends IService<CheckIn> {
      * 累计打卡与最近简要信息
      */
     Map<String, Object> summary(Long userId);
+
+    /**
+     * 最近7天的打卡概览与简单建议
+     */
+    Map<String, Object> weekOverview(Long userId);
 }
 

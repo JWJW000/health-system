@@ -15,14 +15,25 @@ instance.interceptors.request.use((config) => {
   return config
 })
 
+function redirectToLogin() {
+  clearToken()
+  clearUser()
+  const path = window.location.pathname
+  // 已在登录页时不再跳转，避免 401 导致反复刷新
+  if (path === '/login' || path === '/admin') return
+  if (path.startsWith('/admin')) {
+    window.location.href = '/admin'
+  } else {
+    window.location.href = '/login'
+  }
+}
+
 instance.interceptors.response.use(
   (resp) => {
     const data = resp.data
     if (data && typeof data.code !== 'undefined' && data.code !== 0) {
       if (data.code === 401) {
-        clearToken()
-        clearUser()
-        window.location.href = '/login'
+        redirectToLogin()
       }
       return Promise.reject(new Error(data.message || '请求失败'))
     }
@@ -30,9 +41,7 @@ instance.interceptors.response.use(
   },
   (error) => {
     if (error?.response?.status === 401) {
-      clearToken()
-      clearUser()
-      window.location.href = '/login'
+      redirectToLogin()
     }
     return Promise.reject(error)
   },

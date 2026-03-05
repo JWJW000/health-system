@@ -15,6 +15,9 @@ public class UserProfileRequest {
     @Size(max = 64)
     private String username;
 
+    @Size(max = 255)
+    private String avatarUrl;
+
     @NotNull
     @Min(1)
     @Max(2)

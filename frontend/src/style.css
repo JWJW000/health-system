@@ -19,6 +19,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 a {
@@ -28,4 +29,26 @@ a {
 
 #app {
   min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Element Plus 弹窗/消息与系统深色配色一致 */
+html.dark {
+  --el-bg-color: #0f172a;
+  --el-bg-color-overlay: rgba(15, 23, 42, 0.98);
+  --el-bg-color-page: #020617;
+  --el-text-color-primary: #e5e7eb;
+  --el-text-color-regular: #d1d5db;
+  --el-text-color-secondary: #9ca3af;
+  --el-border-color: rgba(148, 163, 184, 0.35);
+  --el-border-color-light: rgba(148, 163, 184, 0.25);
+  --el-border-color-lighter: rgba(148, 163, 184, 0.15);
+  --el-fill-color: rgba(30, 41, 59, 0.8);
+  --el-fill-color-light: rgba(30, 41, 59, 0.6);
+  --el-fill-color-lighter: rgba(30, 41, 59, 0.4);
+  --el-mask-color: rgba(2, 6, 23, 0.7);
+  --el-box-shadow: 0 12px 32px 4px rgba(0, 0, 0, 0.4), 0 8px 20px rgba(0, 0, 0, 0.3);
+  /* 弹窗遮罩与背景一致 */
+  --el-popup-modal-bg-color: #020617;
+  --el-popup-modal-opacity: 0.72;
 }

@@ -20,6 +20,12 @@ public class SysUser {
 
     private String role;
 
+    private String email;
+
+    private String phone;
+
+    private String status;
+
     private Long profileId;
 
     private LocalDateTime createdTime;

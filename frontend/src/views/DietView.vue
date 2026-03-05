@@ -4,11 +4,28 @@ import http from '../api/http'
 
 const loading = ref(false)
 const diets = ref<any[]>([])
+const targetCalorie = ref<number | null>(null)
 
 const load = async () => {
   loading.value = true
   try {
     diets.value = await http.get('/api/diet/list')
+    // 计算目标热量用于按适配度排序
+    try {
+      const profile = await http.get('/api/user/profile/me')
+      if (profile) {
+        const resp = await http.post('/api/nutrition/calc', {
+          gender: profile.gender,
+          age: profile.age,
+          heightCm: profile.heightCm,
+          weightKg: profile.weightKg,
+          fitnessGoal: profile.fitnessGoal,
+        })
+        targetCalorie.value = resp.totalCalorie
+      }
+    } catch {
+      targetCalorie.value = null
+    }
   } finally {
     loading.value = false
   }
@@ -41,6 +58,9 @@ onMounted(load)
           <div class="meta">
             {{ d.totalCalorie }} kcal · 碳水 {{ d.carbGrams }}g · 蛋白 {{ d.proteinGrams }}g · 脂肪
             {{ d.fatGrams }}g
+            <span v-if="targetCalorie" class="score">
+              适配度差值：{{ Math.abs((d.totalCalorie || 0) - targetCalorie!).toFixed(0) }} kcal
+            </span>
           </div>
         </div>
         <button class="collect" @click="toggleCollect(d)">
@@ -88,6 +108,11 @@ onMounted(load)
   font-size: 11px;
   color: #9ca3af;
   margin-top: 4px;
+}
+
+.score {
+  margin-left: 4px;
+  color: #c4b5fd;
 }
 
 .collect {

@@ -48,5 +48,24 @@ public class AuthServiceImpl implements AuthService {
         }
         return jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole());
     }
+
+    @Override
+    public void changePassword(Long userId, String oldPassword, String newPassword) {
+        if (userId == null) {
+            throw new IllegalArgumentException("未登录");
+        }
+        if (!StringUtils.hasText(oldPassword) || !StringUtils.hasText(newPassword)) {
+            throw new IllegalArgumentException("密码不能为空");
+        }
+        SysUser user = sysUserService.getById(userId);
+        if (user == null) {
+            throw new IllegalArgumentException("用户不存在");
+        }
+        if (!passwordEncoder.matches(oldPassword, user.getPasswordHash())) {
+            throw new IllegalArgumentException("原密码不正确");
+        }
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        sysUserService.updateById(user);
+    }
 }
 
