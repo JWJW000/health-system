@@ -108,7 +108,7 @@ const isAdminLayout = computed(() => route.path.startsWith('/admin') && route.pa
     <main class="admin-main">
       <header class="admin-topbar">
         <div class="admin-topbar-left">
-          <h1 class="title">健康管理后台</h1>
+          <h1 class="title">健身用户个性化饮食和训练系统后台</h1>
         </div>
         <div class="admin-topbar-right">
           <button class="admin-logout-btn" type="button" @click="handleAdminLogout">
@@ -144,7 +144,7 @@ const isAdminLayout = computed(() => route.path.startsWith('/admin') && route.pa
     <main class="main">
       <header class="topbar">
         <div class="topbar-left">
-          <h1 class="title">健身饮食与训练系统</h1>
+          <h1 class="title">健身用户个性化饮食和训练系统</h1>
           <p class="subtitle">个性化营养 · 科学训练 · 数据化反馈</p>
         </div>
         <div class="topbar-right">
