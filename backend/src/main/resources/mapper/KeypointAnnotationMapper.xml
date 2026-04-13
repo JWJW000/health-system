@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.healthy.system.mapper.KeypointAnnotationMapper">
+    <select id="selectByActionId" resultType="com.healthy.system.entity.KeypointAnnotation">
+        SELECT * FROM keypoint_annotation WHERE action_id = #{actionId}
+    </select>
+</mapper>

@@ -224,3 +224,52 @@ VALUES
 ON DUPLICATE KEY UPDATE check_date = VALUES(check_date);
 
 
+
+-- 用户健身视频表
+CREATE TABLE IF NOT EXISTS user_video (
+    id           BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id      BIGINT NOT NULL COMMENT '用户ID',
+    action_id    BIGINT NOT NULL COMMENT '关联的训练动作ID',
+    video_url    VARCHAR(512) NOT NULL COMMENT '视频URL',
+    thumbnail_url VARCHAR(512) NULL COMMENT '封面图URL',
+    category     VARCHAR(32) NULL COMMENT '视频分类/动作名称',
+    duration_sec INT DEFAULT 0 COMMENT '视频时长(秒)',
+    file_size    BIGINT DEFAULT 0 COMMENT '文件大小(字节)',
+    created_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_uservideo_user FOREIGN KEY (user_id) REFERENCES user_profile(id),
+    CONSTRAINT fk_uservideo_action FOREIGN KEY (action_id) REFERENCES train_action(id)
+) COMMENT='用户健身视频';
+
+-- 视频对比记录表
+CREATE TABLE IF NOT EXISTS video_compare_record (
+    id              BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id         BIGINT NOT NULL COMMENT '用户ID',
+    user_video_id   BIGINT NOT NULL COMMENT '用户视频ID',
+    std_action_id   BIGINT NOT NULL COMMENT '标准动作ID',
+    compare_result  JSON NULL COMMENT '对比结果JSON',
+    overall_score   INT DEFAULT 0 COMMENT '综合评分(0-100)',
+    status          VARCHAR(16) DEFAULT 'COMPLETED' COMMENT '状态: PENDING/COMPLETED/FAILED',
+    created_time    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_compare_user FOREIGN KEY (user_id) REFERENCES user_profile(id),
+    CONSTRAINT fk_compare_uservideo FOREIGN KEY (user_video_id) REFERENCES user_video(id),
+    CONSTRAINT fk_compare_stdaction FOREIGN KEY (std_action_id) REFERENCES train_action(id)
+) COMMENT='视频对比记录';
+
+-- 关键部位标注配置表
+CREATE TABLE IF NOT EXISTS keypoint_annotation (
+    id            BIGINT PRIMARY KEY AUTO_INCREMENT,
+    action_id     BIGINT NOT NULL COMMENT '动作ID',
+    keypoint_type VARCHAR(32) NOT NULL COMMENT '关键点类型: shoulder/elbow/back/knee/hip',
+    x_ratio       DECIMAL(5,4) DEFAULT 0.5 COMMENT 'X坐标比例(0-1)',
+    y_ratio       DECIMAL(5,4) DEFAULT 0.5 COMMENT 'Y坐标比例(0-1)',
+    standard_angle INT DEFAULT 90 COMMENT '标准角度',
+    angle_tolerance INT DEFAULT 15 COMMENT '角度容差',
+    color         VARCHAR(16) DEFAULT 'green' COMMENT '颜色: green/yellow/red',
+    description   VARCHAR(128) NULL COMMENT '描述',
+    show_arc      TINYINT DEFAULT 1 COMMENT '是否显示角度弧线',
+    show_range    TINYINT DEFAULT 1 COMMENT '是否显示幅度范围框',
+    show_trail    TINYINT DEFAULT 0 COMMENT '是否显示轨迹引导线',
+    created_time  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_annotation_action FOREIGN KEY (action_id) REFERENCES train_action(id),
+    UNIQUE KEY uk_action_keypoint (action_id, keypoint_type)
+) COMMENT='关键部位标注配置';
